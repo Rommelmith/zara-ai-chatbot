@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HandOverIt — Zara</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Fraunces:ital,wght@0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0a0a0a;
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 760px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .header {
+    text-align: center;
+    padding: 8px 0;
+  }
+
+  .brand {
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #5b9bd5;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  .header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 400;
+    color: #f0f0f0;
+  }
+
+  .header h1 em { font-style: italic; color: #5b9bd5; }
+
+  .chatbox {
+    background: #141414;
+    border: 1px solid #222;
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 540px;
+  }
+
+  .chat-header {
+    background: #1a1a1a;
+    padding: 14px 18px;
+    border-bottom: 1px solid #222;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5b9bd5, #3a7abf);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    color: #fff;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .online-dot {
+    position: absolute;
+    bottom: 1px; right: 1px;
+    width: 9px; height: 9px;
+    background: #4caf72;
+    border-radius: 50%;
+    border: 2px solid #1a1a1a;
+  }
+
+  .agent-name {
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    color: #f0f0f0;
+  }
+
+  .agent-sub {
+    font-size: 11px;
+    color: #5b9bd5;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 300;
+  }
+
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: #222 transparent;
+  }
+
+  #messages::-webkit-scrollbar { width: 4px; }
+  #messages::-webkit-scrollbar-thumb { background: #222; }
+
+  .msg { max-width: 85%; animation: fadeIn 0.2s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.assistant { align-self: flex-start; }
+  .msg.user      { align-self: flex-end; }
+
+  .bubble {
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  .assistant .bubble {
+    background: #1e1e1e;
+    color: #d0d0d0;
+    border: 1px solid #2a2a2a;
+    border-bottom-left-radius: 4px;
+  }
+
+  .user .bubble {
+    background: linear-gradient(135deg, #5b9bd5, #3a7abf);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+    font-weight: 400;
+  }
+
+  .typing-dots { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+  .typing-dots span {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #5b9bd5;
+    animation: bounce 1.2s ease-in-out infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30%           { transform: translateY(-5px); }
+  }
+
+  .listing-toast {
+    background: #0f1f2a;
+    border: 1px solid #1e3a4a;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #5b9bd5;
+    align-self: center;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .chip {
+    background: #1e1e1e;
+    border: 1px solid #2a2a2a;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 11.5px;
+    color: #5b9bd5;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 300;
+    transition: background 0.2s;
+  }
+  .chip:hover { background: #252525; }
+
+  .input-area {
+    padding: 12px 14px;
+    border-top: 1px solid #1e1e1e;
+    background: #111;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  #userInput {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: #d0d0d0;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13.5px;
+    font-weight: 300;
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+    min-height: 42px;
+    max-height: 100px;
+    line-height: 1.5;
+  }
+
+  #userInput::placeholder { color: #333; }
+  #userInput:focus { border-color: #5b9bd544; }
+
+  #sendBtn {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #5b9bd5, #3a7abf);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+  }
+
+  #sendBtn:hover:not(:disabled) { opacity: 0.85; }
+  #sendBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+  #sendBtn svg { width: 16px; height: 16px; fill: #fff; }
+
+  .listings-panel {
+    background: #141414;
+    border: 1px solid #222;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .listings-header {
+    background: #1a1a1a;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #222;
+  }
+
+  .listings-title {
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    color: #f0f0f0;
+  }
+
+  #refreshBtn {
+    background: none;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 5px 12px;
+    color: #5b9bd5;
+    font-size: 11px;
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  #refreshBtn:hover { background: #1e1e1e; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #444;
+    font-weight: 400;
+    border-bottom: 1px solid #1e1e1e;
+  }
+
+  td {
+    padding: 10px 16px;
+    color: #888;
+    border-bottom: 1px solid #1a1a1a;
+    font-weight: 300;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  td:first-child { color: #d0d0d0; font-weight: 400; }
+
+  .empty {
+    padding: 24px;
+    text-align: center;
+    color: #333;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <div class="brand">HandOverIt.com · Swap Platform</div>
+    <h1>Chat with <em>Zara</em></h1>
+  </div>
+
+  <div class="chatbox">
+    <div class="chat-header">
+      <div class="avatar">
+        Z
+        <div class="online-dot"></div>
+      </div>
+      <div>
+        <div class="agent-name">Zara</div>
+        <div class="agent-sub">Swap Assistant</div>
+      </div>
+    </div>
+
+    <div id="messages"></div>
+
+    <div class="input-area">
+      <textarea id="userInput" placeholder="Tell Zara what you want to swap…" rows="1"></textarea>
+      <button id="sendBtn">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+<!--  <div class="listings-panel">-->
+<!--    <div class="listings-header">-->
+<!--      <span class="listings-title">Saved Listings</span>-->
+<!--      <button id="refreshBtn">↻ Refresh</button>-->
+<!--    </div>-->
+<!--    <div id="listingsContainer">-->
+<!--      <div class="empty">No listings yet — start a conversation</div>-->
+<!--    </div>-->
+  </div>
+
+</div>
+
+<script>
+  // ── STATE ──
+  // This object holds everything we need to track
+  const state = {
+    messages: [],     // full conversation history — sent to backend every time
+    isLoading: false  // stops user sending multiple messages at once
+  };
+
+  // ── DOM ELEMENTS ──
+  const messagesEl = document.getElementById('messages');
+  const inputEl    = document.getElementById('userInput');
+  const sendBtn    = document.getElementById('sendBtn');
+  const refreshBtn = document.getElementById('refreshBtn');
+
+  // ── ADD MESSAGE BUBBLE ──
+  // Creates a chat bubble in the UI
+  // If isStreaming=true, returns the bubble so we can append text to it live
+  function addMessage(role, content, isStreaming = false) {
+    const wrapper = document.createElement('div');
+    wrapper.className = `msg ${role}`;
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = content;
+    wrapper.appendChild(bubble);
+
+    // Show quick reply chips after Zara's first message
+    if (role === 'assistant' && state.messages.length === 0) {
+      const chips = document.createElement('div');
+      chips.className = 'chips';
+      ['I have a phone to swap', 'I have a laptop', 'Looking for a bicycle', 'How does this work?'].forEach(text => {
+        const chip = document.createElement('button');
+        chip.className = 'chip';
+        chip.textContent = text;
+        chip.onclick = () => { inputEl.value = text; inputEl.focus(); };
+        chips.appendChild(chip);
+      });
+      wrapper.appendChild(chips);
+    }
+
+    messagesEl.appendChild(wrapper);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return isStreaming ? bubble : null;
+  }
+
+  // ── TYPING INDICATOR ──
+  function showTyping() {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'msg assistant';
+    wrapper.id = 'typing';
+    wrapper.innerHTML = '<div class="bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>';
+    messagesEl.appendChild(wrapper);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function hideTyping() {
+    const el = document.getElementById('typing');
+    if (el) el.remove();
+  }
+
+  // ── SEND MESSAGE ──
+  // This is the main function. Here's what it does step by step:
+  // 1. Get user's text
+  // 2. Add it to conversation history
+  // 3. Send full history to /chat
+  // 4. Read streaming response chunk by chunk
+  // 5. Display each chunk live in the bubble
+  async function sendMessage() {
+    const text = inputEl.value.trim();
+    if (!text || state.isLoading) return;
+
+    inputEl.value = '';
+    inputEl.style.height = 'auto';
+    state.isLoading = true;
+    sendBtn.disabled = true;
+
+    // Add user message to UI and history
+    addMessage('user', text);
+    state.messages.push({ role: 'user', content: text });
+
+    showTyping();
+
+    try {
+      // POST to your FastAPI /chat route
+      // We send the FULL messages array every time
+      const response = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: state.messages })
+      });
+
+      // Set up streaming reader
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      let zaraText = '';    // accumulate full response
+      let bubble = null;    // the element we stream text into
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Each chunk is plain text — append it directly
+        const chunk = decoder.decode(value);
+        zaraText += chunk;
+
+        // First chunk — remove typing dots, create bubble
+        if (!bubble) {
+          hideTyping();
+          bubble = addMessage('assistant', '', true);
+        }
+
+        // Update bubble text live
+        bubble.textContent = zaraText;
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      // Save Zara's full response to history
+      state.messages.push({ role: 'assistant', content: zaraText });
+
+      // Check if a listing was saved (backend prints it, we just notify)
+      if (zaraText.includes('[LISTING:')) {
+        const toast = document.createElement('div');
+        toast.className = 'listing-toast';
+        toast.textContent = '✓ Listing draft saved automatically';
+        messagesEl.appendChild(toast);
+        setTimeout(loadListings, 600);
+      }
+
+    } catch (err) {
+      hideTyping();
+      addMessage('assistant', '⚠ Could not reach server. Make sure uvicorn is running.');
+      console.error(err);
+    } finally {
+      state.isLoading = false;
+      sendBtn.disabled = false;
+      inputEl.focus();
+    }
+  }
+
+  // ── LOAD LISTINGS TABLE ──
+  async function loadListings() {
+    try {
+      const res = await fetch('/listings');
+      const data = await res.json();
+      const container = document.getElementById('listingsContainer');
+
+      if (!data.listings || data.listings.length === 0) {
+        container.innerHTML = '<div class="empty">No listings yet — start a conversation</div>';
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Condition</th>
+              <th>Looking For</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.listings.map(l => `
+              <tr>
+                <td>${l[1] || '—'}</td>
+                <td>${l[2] || '—'}</td>
+                <td>${l[3] || '—'}</td>
+                <td>${new Date(l[4]).toLocaleDateString()}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    } catch (err) {
+      console.error('Could not load listings:', err);
+    }
+  }
+
+  // ── EVENT LISTENERS ──
+  sendBtn.addEventListener('click', sendMessage);
+
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  inputEl.addEventListener('input', () => {
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
+  });
+
+  refreshBtn.addEventListener('click', loadListings);
+
+  // ── INIT ──
+  function init() {
+    addMessage('assistant', "Assalam-o-Alaikum! I'm Zara, your swap assistant on HandOverIt.com. Tell me what you'd like to trade and I'll help you find the best exchange. What do you have?");
+    loadListings();
+    inputEl.focus();
+  }
+
+  init();
+</script>
+</body>
+</html>
